@@ -12,7 +12,7 @@ N_lattice = 50;
 load('LDoS_(w-E0)=linspace(-0.5,0.5,41)_epsilon=1e-3_n=500_N=19_grid256.mat', 'LDoS_result');  % Load single defect LDoS
 single_defect_LDoS = LDoS_result(:,:,1);
 single_grid_size = size(single_defect_LDoS,1);
-load('LDoS_result_multi_defect_withlocations.mat', 'LDoS_result', 'defect_locations', 'N');   % Load actual multi-defect LDoS
+load('LDoS_result_multi_defect_withlocations_n=500.mat', 'LDoS_result', 'defect_locations', 'N');   % Load actual multi-defect LDoS
 multi_defect_LDoS = LDoS_result(:,:,1);
 N_lattice = N;
 multi_grid_size = size(multi_defect_LDoS,1);
@@ -56,13 +56,15 @@ colormap(gca, [1 1 1; 1 0 0]);  % White background, red markers
 axis equal tight;
 xlabel('Grid X');
 ylabel('Grid Y');
-% Add lattice grid lines
+
+% Add lattice grid lines with lighter color
 hold on;
 for i = 1:N_lattice
     x_grid = (i-1) * scale_factor + 1;
     y_grid = (i-1) * scale_factor + 1;
-    plot([1 grid_size], [y_grid y_grid], 'k:', 'LineWidth', 0.5, 'Alpha', 0.3);
-    plot([x_grid x_grid], [1 grid_size], 'k:', 'LineWidth', 0.5, 'Alpha', 0.3);
+    % Use a very light gray color for grid lines
+    plot([1 grid_size], [y_grid y_grid], 'Color', [0.8 0.8 0.8], 'LineWidth', 0.5, 'LineStyle', ':');
+    plot([x_grid x_grid], [1 grid_size], 'Color', [0.8 0.8 0.8], 'LineWidth', 0.5, 'LineStyle', ':');
 end
 hold off;
 
