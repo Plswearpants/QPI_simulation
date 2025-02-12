@@ -1,0 +1,95 @@
+% Script to compare multi-defect LDoS with convolution of single defect LDoS
+% Author: Dong Chen
+% Date: Feb 2025
+
+%% Parameters and Data Loading
+% Grid and lattice parameters
+grid_size = 256;
+N_lattice = 50;
+
+% Load your data here
+% TODO: Replace these with your actual data loading commands
+load('LDoS_(w-E0)=linspace(-0.5,0.5,41)_epsilon=1e-3_n=500_N=19_grid256.mat', 'LDoS_result');  % Load single defect LDoS
+single_defect_LDoS = LDoS_result(:,:,1);
+single_grid_size = size(single_defect_LDoS,1);
+load('LDoS_result_multi_defect_withlocations.mat', 'LDoS_result', 'defect_locations', 'N');   % Load actual multi-defect LDoS
+multi_defect_LDoS = LDoS_result(:,:,1);
+N_lattice = N;
+multi_grid_size = size(multi_defect_LDoS,1);
+
+
+%% Compute Convolved LDoS
+convolved_LDoS = compareDefectLDoS(single_defect_LDoS, defect_locations, N_lattice, grid_size);
+
+%% Visualization
+figure('Position', [100 100 1000 800]);
+
+% Single defect LDoS
+subplot(2,2,1);
+imagesc(single_defect_LDoS);
+title('Single Defect LDoS');
+colorbar;
+axis equal tight;
+xlabel('Grid X');
+ylabel('Grid Y');
+
+% Defect Locations Plot
+subplot(2,2,2);
+% Create empty grid
+grid_img = zeros(grid_size, grid_size);
+% Convert lattice coordinates to grid coordinates
+scale_factor = (grid_size - 1) / (N_lattice - 1);
+grid_locations = round((defect_locations - 1) * scale_factor + 1);
+% Mark defect locations
+for i = 1:size(grid_locations, 1)
+    x = grid_locations(i,1);
+    y = grid_locations(i,2);
+    % Create a marker (5x5 square) at each defect location
+    marker_size = 5;
+    x_range = max(1,x-floor(marker_size/2)):min(grid_size,x+floor(marker_size/2));
+    y_range = max(1,y-floor(marker_size/2)):min(grid_size,y+floor(marker_size/2));
+    grid_img(y_range, x_range) = 1;
+end
+imagesc(grid_img);
+title('Defect Locations');
+colormap(gca, [1 1 1; 1 0 0]);  % White background, red markers
+axis equal tight;
+xlabel('Grid X');
+ylabel('Grid Y');
+% Add lattice grid lines
+hold on;
+for i = 1:N_lattice
+    x_grid = (i-1) * scale_factor + 1;
+    y_grid = (i-1) * scale_factor + 1;
+    plot([1 grid_size], [y_grid y_grid], 'k:', 'LineWidth', 0.5, 'Alpha', 0.3);
+    plot([x_grid x_grid], [1 grid_size], 'k:', 'LineWidth', 0.5, 'Alpha', 0.3);
+end
+hold off;
+
+% Convolved result
+subplot(2,2,3);
+imagesc(convolved_LDoS);
+title('Convolved Multi-defect LDoS');
+colorbar;
+axis equal tight;
+xlabel('Grid X');
+ylabel('Grid Y');
+
+% Actual multi-defect LDoS
+subplot(2,2,4);
+imagesc(multi_defect_LDoS);
+title('Actual Multi-defect LDoS');
+colorbar;
+axis equal tight;
+xlabel('Grid X');
+ylabel('Grid Y');
+
+% Add overall title
+sgtitle('Multi-defect LDoS Comparison', 'FontSize', 14);
+
+% Save results
+save('comparison_results.mat', 'convolved_LDoS');
+
+% Print some statistics
+correlation = corrcoef(multi_defect_LDoS(:), convolved_LDoS(:));
+fprintf('Correlation coefficient between actual and convolved: %.4f\n', correlation(1,2));
