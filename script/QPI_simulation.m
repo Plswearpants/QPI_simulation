@@ -13,8 +13,8 @@ N = 25; % number of lattice points along one dimension
 %% 2. Set up simulating ranges
 n = 300; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
-gridSize = 256; % number of sampling points along one dimension
-omega_values = linspace(-0.5, 0.5, 41); % energy levels
+gridSize = 51; % number of sampling points along one dimension
+omega_values = linspace(-0.5, 0.5, 3); % energy levels
 
 %% 3. Define Defect configuration
 simulation_type = 'single'; % Options: 'single' or 'multi'
