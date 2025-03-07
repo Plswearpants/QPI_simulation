@@ -26,7 +26,7 @@ LDoS_noisy = normalizeData(LDoS_noisy);
 
 % Load colormap
 load('InverseGray', 'invgray');
-map = invgray;
+map = gray;
 
 % Determine global min and max values if global range is selected
 if strcmp(rangeType, 'global')
@@ -38,7 +38,7 @@ end
 slicedglob_LDoS = zeros(size(LDoS_noisy, 1), size(LDoS_noisy, 2), size(LDoS_noisy, 3), 3);
 
 % nos for dynamic range, larger nos bigger contrast
-nos = 2;  % Reduced from 8 to handle normalized data better
+nos = 20;  % Reduced from 8 to handle normalized data better
 
 % Convert LDoS_result to image format using the colormap
 for k = 1:size(LDoS_noisy, 3)

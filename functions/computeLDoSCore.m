@@ -30,7 +30,7 @@ function [LDoS, defect_locations_lattice] = computeLDoSCore(omega, defect_energi
 
     % Create physical coordinate grid
     [X1, X2] = meshgrid(linspace(-N*a/2, N*a/2, gridSize), linspace(-N*a/2, N*a/2, gridSize));
-    X = cat(3, X1, X2); % Location vector on the grid
+    X_physical = cat(3, X1, X2); % Location vector on the grid
 
     % Convert defect locations from lattice coordinates to physical coordinates
     % Shift from (N/2 + 0.5, N/2 + 0.5) centered coordinates to (0,0) centered coordinates
@@ -39,5 +39,5 @@ function [LDoS, defect_locations_lattice] = computeLDoSCore(omega, defect_energi
     % Part 2: Compute LDoS using the core computation function
     %LDoS = ComputeDefectLDoS(X, omega, defect_energies, defect_locations, ...
     %                       a, t, E0, n, epsilon);
-    LDoS = ComputeLDoS(X, omega, defect_energies, defect_locations_physical, a, t, E0, n, epsilon);
+    LDoS = ComputeLDoS(X_physical, omega, defect_energies, defect_locations_physical, a, t, E0, n, epsilon);
 end 

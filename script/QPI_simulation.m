@@ -8,19 +8,25 @@
 a = 1*10^-9; % lattice constant
 t = -0.2; % hopping parameter
 E0 = 0; % on-site energy
-Ed = -0.1; % defect energy
-N = 20; % number of lattice points along one dimension
-%% 2. Set up simulating ranges
-% Values of omega, epsilon, gridSize, and n
-omega_values = linspace(-0.5, 0.5, 11);
-epsilon = 2.5*10^-3;
-gridSize = 200; % size of the grid for LDoS calculation
-n = 100; % number of points from (-pi,pi) in Isq calculation
-% Grid and Defect Position
-[X1, X2] = meshgrid(linspace(-N*a/2, N*a/2, gridSize), linspace(-N*a/2, N*a/2, gridSize));
-X = cat(3, X1, X2); % Location vector on the grid
-Xd = [0, 0]; % Defect position vector
+N = 25; % number of lattice points along one dimension
 
+%% 2. Set up simulating ranges
+n = 300; % number of grid points for numerical integration
+epsilon = 1e-3; % small imaginary part for numerical stability
+gridSize = 256; % number of sampling points along one dimension
+omega_values = linspace(-0.5, 0.5, 41); % energy levels
+
+%% 3. Define Defect configuration
+simulation_type = 'single'; % Options: 'single' or 'multi'
+if strcmp(simulation_type, 'single')
+    num_defects = 1;
+    defect_energies = -0.02; % single defect energy
+    defect_location = [ceil(N/2), ceil(N/2)]; % center position for single defect
+else
+    num_defects = 3;
+    defect_energies = -0.02 * ones(num_defects, 1); % multiple defects with same energy
+    defect_location = assignDefectLocations(num_defects, N); % randomly assign defect locations
+end
 
 %% 3. Compute LDoS
 % Initialize a matrix to store results
@@ -71,16 +77,17 @@ save('LDoS_result_multi_defect_withlocations.mat', 'LDoS_result', 'defect_locati
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 load('LDoS_result.mat', 'LDoS_result', 'omega_values', 'epsilon', 'n');
+N=50;
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Visualization~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%% Plot the band structure
+%% Plot the band structure and constant energy contours
 
 % Define parameters for the dispersion relation
-a = 1; % lattice constant
+a = 1e-9; % lattice constant
 t = -0.2; % hopping parameter
 E0 = 0; % on-site energy
 
 % Define k-space grid
-k_vals = linspace(-pi, pi, 100);
+k_vals = linspace(-pi/a, pi/a, 100);
 [kx, ky] = meshgrid(k_vals, k_vals);
 
 % Compute the energy dispersion
@@ -94,6 +101,30 @@ xlabel('k_x');
 ylabel('k_y');
 zlabel('Energy (E)');
 grid on;
+
+%% Compute and plot CEC and its convolution at different energies
+% Define energy range matching the band structure
+omega_vals = linspace(min(E(:)), max(E(:)), 41);
+
+% Initialize arrays to store CEC and convolution results
+CEC = zeros(size(kx,1), size(kx,2), length(omega_vals));
+CEC_conv = zeros(size(kx,1), size(kx,2), length(omega_vals));
+
+% Compute CEC and convolution for each energy
+for i = 1:length(omega_vals)
+    % Create constant energy contour with small tolerance
+    CEC(:,:,i) = double(abs(E - omega_vals(i)) < 0.05);
+    
+    % Compute convolution using conv2
+    temp_conv = conv2(CEC(:,:,i), CEC(:,:,i), 'same');
+    CEC_conv(:,:,i) = temp_conv / max(temp_conv(:)); % Normalize
+end
+
+figure;
+d3gridDisplay(CEC,'dynamic');
+figure;
+d3gridDisplay(CEC_conv,'dynamic');
+
 %% Plot DOS at different energy(surface area of the Fermi contour)
 
 % Define parameters for the dispersion relation
@@ -131,7 +162,7 @@ grid on;
 selected_energy= [1:20,22:41];
 LDoS_result=LDoS_result(:,:,selected_energy);
 %% Generate QPI from target_LDoS
-target_LDoS= LDoS_result_noisy;
+target_LDoS= LDoS_sim;
 
 QPI_sim= zeros(size(target_LDoS));
 for k=1:size(target_LDoS,3)
@@ -139,13 +170,14 @@ for k=1:size(target_LDoS,3)
 end
 %% Visualize LDoS for a specific energy level(single defect)
 % -------------------------------------------
-energy_level = 2; % example energy level index
+energy_level = 40; % example energy level index
 
 figure()
 load('InverseGray','invgray')
 map = gray;
-
-imagesc(X(1,:,1), X(:,1,2), LDoS_result(:,:,energy_level));
+[X, Y] = meshgrid(linspace(-N*lattice_spacing/2, N*lattice_spacing/2, 301), ...
+                                  linspace(-N*lattice_spacing/2, N*lattice_spacing/2, 301));
+imagesc(X(1,:),Y(:,1),LDoS_result(:,:,energy_level));
 colormap(map); % Set the colormap to invgray
 colorbar;
 title(['LDoS at \omega - E0 = ', num2str(omega_values(energy_level)-E0)]);
@@ -156,15 +188,15 @@ hold on;
 % Add green dots at lattice positions
 % -------------------------------------------
 lattice_spacing = a;
-[lattice_x, lattice_y] = meshgrid(linspace(-N*lattice_spacing/2, N*lattice_spacing/2, N), ...
-                                  linspace(-N*lattice_spacing/2, N*lattice_spacing/2, N));
-plot(lattice_x(:), lattice_y(:), 'g.', 'MarkerSize', 2);
+[lattice_x, lattice_y] = meshgrid(linspace(-N*lattice_spacing/2, N*lattice_spacing/2, N+1), ...
+                                  linspace(-N*lattice_spacing/2, N*lattice_spacing/2, N+1));
+%plot(lattice_x(:), lattice_y(:), 'g.', 'MarkerSize', 2);
 
 hold off;
 
 %% Visualize LDoS for a specific energy level(multi-defect) with defect location 
 % Visualize the defect locations
-N=19;
+N=50;
 figure;
 plot(defect_locations(:,1), defect_locations(:,2), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
 xlim([0, N+1]);
@@ -215,15 +247,21 @@ imshow3D(slicedglob_LDoS);
 
 %% plot QPI dispersion 
 figure();
-load('InverseGray','invgray')
-map = gray;
+d3gridDisplay(QPI_sim,'dynamic')
 
-for k=1:size(LDoS_result,3)
-    MaxValue = max(QPI_sim(:,:,k),[],'all');
-    MinValue = min(QPI_sim(:,:,k),[],'all');
-    slicedglob_QPI(:,:,k,:) = mat2im(QPI_sim(:,:,k), map, [1.2*MinValue 0.8*MaxValue]);
-end
-imshow3D(slicedglob_QPI)
+%% Plot 3D QPI dispersion
+figure;
+[kx, ky] = meshgrid(linspace(-pi, pi, size(QPI_sim,1)), linspace(-pi, pi, size(QPI_sim,2)));
+
+% Plot for a selected energy slice (e.g. middle of the energy range)
+energy_slice = ceil(size(QPI_sim,3)/2);
+surf(kx, ky, QPI_sim(:,:,energy_slice));
+colorbar;
+xlabel('k_x');
+ylabel('k_y');
+zlabel('Intensity');
+grid on;
+
 
 %% Plot combined LDoS & QPI 
 

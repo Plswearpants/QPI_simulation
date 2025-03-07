@@ -1,0 +1,67 @@
+Green's Function and T-Matrix Computation Documentation
+===================================================
+
+1. computeBLGF.m (Compute Bulk Lattice Green's Function)
+-------------------------------------------------------
+
+Purpose:
+Computes the Green's function between two sets of points (R1 and R2) in a lattice system.
+
+Input Formats:
+- R1: Can be either a grid (MxNx2) or a list of points (Kx2)
+- R2: Always a list of points (Lx2)
+- Each point is represented by (x,y) coordinates
+
+Output Format:
+The output dimension follows the rule: dim(G0) = dim(R1) + dim(R2)
+
+Case 1 - R1 is a grid:
+- Input: R1(M,N,2), R2(L,2)
+- Output: G0(M,N,L)
+- G0(i,j,k) gives Green's function between grid point R1(i,j,:) and defect point R2(k,:)
+
+Case 2 - R1 is a list:
+- Input: R1(K,2), R2(L,2)
+- Output: G0(K,L)
+- G0(i,j) gives Green's function between point R1(i,:) and point R2(j,:)
+
+Computation Process:
+1. Handles input format (grid or list)
+2. Computes separation vectors between all pairs of points
+3. Calculates Green's function using Isq_integral
+4. Reshapes output according to input format
+
+2. computeTMatrix.m
+------------------
+
+Purpose:
+Computes the T-matrix for a system of defects using the Green's function.
+
+Input:
+- defect_energies: Energy levels of defects [num_defects x 1]
+- omega: Energy values to compute [1 x num_energies]
+- defect_locations: Positions of defects [num_defects x 2]
+- Other parameters: a, t, E0, n, epsilon
+
+Process:
+1. Computes G0 for all defect pairs at each energy:
+   - Uses computeBLGF with same defect_locations for both R1 and R2
+   - Creates [num_defects x num_defects] matrix for each energy
+   - arrayfun iterates over different omega values
+
+Example for 3 defects:
+- defect_locations = [x1 y1; x2 y2; x3 y3]
+- For each omega, G0 matrix is:
+  [G(1→1)  G(1→2)  G(1→3)]
+  [G(2→1)  G(2→2)  G(2→3)]
+  [G(3→1)  G(3→2)  G(3→3)]
+
+Output:
+T_matrix [num_defects x num_defects x length(omega)]
+- First two dimensions: defect-defect interactions
+- Third dimension: energy values
+
+Key Points:
+1. computeBLGF handles all spatial interactions for a single energy
+2. computeTMatrix uses arrayfun to batch process different energies
+3. Final T-matrix contains complete energy-dependent defect interaction information 
