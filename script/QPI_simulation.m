@@ -49,23 +49,24 @@ save('LDoS_(w-E0)=linspace(-0.5,0.5,41)_epsilon=1e-3_n=100_N=100_grid300.mat', '
 a = 1*10^-9; % lattice constant
 t = -0.2; % hopping parameter
 E0 = 0; % on-site energy
-Ed = 2; % defect energy
+Ed = -0.1; % defect energy
 N = 50; % number of lattice points along one dimension
-num_defects = 10; % number of defects
+num_defects = 3; % number of defects
 
 %% 2. Set up simulating ranges
-n = 100; % number of grid points for numerical integration
+n = 500; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
 gridSize = 256; % number of sampling points along one dimension
-omega_values = linspace(-0.5, 0.5, 6); % energy levels
+omega_values = linspace(-0.5, 0.5, 4); % energy levels
 
 %% 3. Compute LDoS for multi-defects case
 
 % Compute the LDoS for multiple defects
-[LDoS_result, defect_locations] = computeLDoSWithMultipleDefects(a, t, E0, Ed, n, epsilon, num_defects, N, gridSize, omega_values);
+%[LDoS_result, defect_locations] = computeLDoSWithMultipleDefects(a, t, E0, Ed, n, epsilon, num_defects, N, gridSize, omega_values);
+[LDoS_result, defect_locations] = test_multildos(a, t, E0, Ed, n, epsilon, num_defects, N, gridSize, omega_values);
 
 % Save the result
-save('LDoS_result_multi_defect_withlocations .mat', 'LDoS_result', 'defect_locations', 'omega_values', 'epsilon', 'n', 'N');
+save('LDoS_result_multi_defect_withlocations.mat', 'LDoS_result', 'defect_locations', 'omega_values', 'epsilon', 'n', 'N');
 
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
