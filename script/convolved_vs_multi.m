@@ -12,7 +12,7 @@ N_lattice = 50;
 load('LDoS_(w-E0)=linspace(-0.5,0.5,41)_epsilon=1e-3_n=500_N=19_grid256.mat', 'LDoS_result');  % Load single defect LDoS
 single_defect_LDoS = LDoS_result(:,:,1);
 single_grid_size = size(single_defect_LDoS,1);
-load('LDoS_result_multi_defect_withlocations_n=500.mat', 'LDoS_result', 'defect_locations', 'N');   % Load actual multi-defect LDoS
+load('LDoS_result_multi_defect_withlocations.mat', 'LDoS_result', 'defect_locations', 'N');   % Load actual multi-defect LDoS
 multi_defect_LDoS = LDoS_result(:,:,1);
 N_lattice = N;
 multi_grid_size = size(multi_defect_LDoS,1);

@@ -3,7 +3,7 @@
 % TB-model and only consider nearest neighbor hopping term. For more
 % details, please consult the supplementary file of the pape:
 % (doi:https://doi.org/10.1038/s41467-020-14633-1)
-%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Computing_LDoS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Computing_single_defect~~~~~~~~~~~~~~~~~~~~~~
 %% 1. Define Parameters
 a = 1*10^-9; % lattice constant
 t = -0.2; % hopping parameter
@@ -29,18 +29,51 @@ else
 end
 
 %% 3. Compute LDoS
-tic;
-disp(['Computing ' simulation_type ' defect LDoS...']);
+% Initialize a matrix to store results
+LDoS_result = zeros(gridSize, gridSize, length(omega_values));
 
-% Compute LDoS using computeLDoSCore 
-[LDoS_result, used_locations] = computeLDoSCore(omega_values, defect_energies, defect_location, ...
-    N, a, t, E0, n, epsilon, gridSize);
+% start timer
+tic;
+
+% Loop over different omega values
+for p = 1:length(omega_values)
+    omega = omega_values(p);
+    disp(['Computing LDoS for omega = ', num2str(omega)]);
+    
+    % Compute LDoS with the current omega value
+    LDoS_result(:,:,p) = ComputeLDoS(X, omega, a, t, E0, Ed, Xd, n, epsilon);
+    toc
+end
+
 elapsed_time = toc;
-disp(['Computation completed in ' num2str(elapsed_time) ' seconds']);
+% Save the result for future use; CHANGE YOUR FILE NAME HERE!!
+save('LDoS_(w-E0)=linspace(-0.5,0.5,41)_epsilon=1e-3_n=100_N=100_grid300.mat', 'LDoS_result', 'omega_values', 'epsilon', 'n', 'N');
+
+%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Computing_multi_defects~~~~~~~~~~~~~~~~~~~~~~
+%% 1. Define parameters and initialization 
+% Parameters
+a = 1*10^-9; % lattice constant
+t = -0.2; % hopping parameter
+E0 = 0; % on-site energy
+Ed = -0.1; % defect energy
+N = 50; % number of lattice points along one dimension
+num_defects = 3; % number of defects
+
+%% 2. Set up simulating ranges
+n = 500; % number of grid points for numerical integration
+epsilon = 1e-3; % small imaginary part for numerical stability
+gridSize = 256; % number of sampling points along one dimension
+omega_values = linspace(-0.5, 0.5, 4); % energy levels
+
+%% 3. Compute LDoS for multi-defects case
+
+% Compute the LDoS for multiple defects
+%[LDoS_result, defect_locations] = computeLDoSWithMultipleDefects(a, t, E0, Ed, n, epsilon, num_defects, N, gridSize, omega_values);
+[LDoS_result, defect_locations] = test_multildos(a, t, E0, Ed, n, epsilon, num_defects, N, gridSize, omega_values);
 
 % Save the result
-save_filename = ['LDoS_' simulation_type '_defect.mat'];
-save(save_filename, 'LDoS_result', 'used_locations', 'omega_values', 'epsilon', 'n', 'N');
+save('LDoS_result_multi_defect_withlocations.mat', 'LDoS_result', 'defect_locations', 'omega_values', 'epsilon', 'n', 'N');
+
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 load('LDoS_result.mat', 'LDoS_result', 'omega_values', 'epsilon', 'n');
@@ -63,7 +96,6 @@ E = E0 - 2 * t * (cos(kx * a) + cos(ky * a));
 % Plot the energy dispersion
 figure;
 surf(kx, ky, E);
-colorbar;
 title('Energy Dispersion Relation');
 xlabel('k_x');
 ylabel('k_y');
@@ -166,7 +198,7 @@ hold off;
 % Visualize the defect locations
 N=50;
 figure;
-plot(used_locations(:,1), used_locations(:,2), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
+plot(defect_locations(:,1), defect_locations(:,2), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
 xlim([0, N+1]);
 ylim([0, N+1]);
 title('Defect Locations');
@@ -239,7 +271,7 @@ mkdir(path);
 load('InverseGray', 'invgray'); % Ensure 'invgray' colormap is available
 
 % Assign datasets to plot
-Grid = LDoS_result; % Ensure 'LDoS_result' variable is loaded
+Grid = LDoS_result_noisy; % Ensure 'LDoS_result' variable is loaded
 qpi = QPI_sim; % Ensure 'QPI_sim' variable is loaded
 
 for k = 1:length(omega_values)
@@ -400,7 +432,7 @@ LDoS_result_noisy = LDoS_with_noise_visualization(LDoS_result, selected_energy, 
 %% Zero-mean noise addition (power-based SNR)
 
 % Desired SNR (e.g., 10)
-desired_snr = 3;
+desired_snr = 0.1;
 
 % Initialize arrays to store signal power and noise power
 signal_power = zeros(length(omega_values), 1);
