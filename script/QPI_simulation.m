@@ -8,20 +8,20 @@
 a = 1*10^-9; % lattice constant
 t = -0.2; % hopping parameter
 E0 = 0; % on-site energy
-N = 25; % number of lattice points along one dimension
+N = 11; % number of lattice points along one dimension
 
 %% 2. Set up simulating ranges
 n = 300; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
-gridSize = 256; % number of sampling points along one dimension
-omega_values = linspace(-0.5, 0.5, 41); % energy levels
+gridSize = 51; % number of sampling points along one dimension
+omega_values = linspace(-0.5, 0.5, 5); % energy levels
 
 %% 3. Define Defect configuration
 simulation_type = 'single'; % Options: 'single' or 'multi'
 if strcmp(simulation_type, 'single')
     num_defects = 1;
-    defect_energies = -0.02; % single defect energy
-    defect_location = [ceil(N/2), ceil(N/2)]; % center position for single defect
+    defect_energies = 1; % single defect energy
+    defect_location = [(N+1)/2, (N+1)/2]; % center position for single defect
 else
     num_defects = 3;
     defect_energies = -0.02 * ones(num_defects, 1); % multiple defects with same energy

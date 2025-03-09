@@ -29,7 +29,7 @@ function [LDoS, defect_locations_lattice] = computeLDoSCore(omega, defect_energi
     end
 
     % Create physical coordinate grid
-    [X1, X2] = meshgrid(linspace(-N*a/2, N*a/2, gridSize), linspace(-N*a/2, N*a/2, gridSize));
+    [X1, X2] = meshgrid(linspace(-(N-1)*a/2, (N-1)*a/2, gridSize), linspace(-(N-1)*a/2, (N-1)*a/2, gridSize));
     X_physical = cat(3, X1, X2); % Location vector on the grid
 
     % Convert defect locations from lattice coordinates to physical coordinates

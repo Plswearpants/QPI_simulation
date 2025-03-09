@@ -35,8 +35,7 @@ function T_matrix = computeTMatrix(defect_energies, omega, defect_locations_phys
         % Calculate (δ_αβ - E_β G₀(x_α, x_β))
         delta = eye(num_defects);  % Kronecker delta δ_αβ
         inner_term = delta - E_beta * G0_i;
-        inv_inner = inv(inner_term);
         % Calculate T_αβ = E_α (δ_αβ - E_β G₀(x_α, x_β))⁻¹
-        T_matrix(:,:,i) = E_alpha/inner_term;
+        T_matrix(:,:,i) = E_alpha * (inner_term \ eye(num_defects));  % More numerically stable
     end
 end
