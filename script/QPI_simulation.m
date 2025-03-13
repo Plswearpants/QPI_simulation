@@ -8,13 +8,13 @@
 a = 1*10^-9; % lattice constant
 t = -0.2; % hopping parameter
 E0 = 0; % on-site energy
-N = 31; % number of lattice points along one dimension
+N = 51; % number of lattice points along one dimension
 
 %% 2. Set up simulating ranges
 n = 300; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
-gridSize = 128; % number of spatial sampling points along one dimension
-omega_values = linspace(-0.5, 0.5, 3); % energy levels
+gridSize = 301; % number of spatial sampling points along one dimension
+omega_values = linspace(-0.5, 0.5, 41); % energy levels
 
 %% 3. Define Defect configuration
 simulation_type = 'single'; % Options: 'single' or 'multi'
@@ -35,7 +35,7 @@ disp(['Computing ' simulation_type ' defect LDoS...']);
 % Compute LDoS using computeLDoSCore 
 [LDoS_result, used_locations] = computeLDoSCore(omega_values, defect_energies, defect_location, ...
     N, a, t, E0, n, epsilon, gridSize);
-elapsed_time = toc;
+elapsed_time = toc;c
 disp(['Computation completed in ' num2str(elapsed_time) ' seconds']);
 
 % Save the result

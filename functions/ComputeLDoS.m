@@ -22,6 +22,8 @@ function LDoS = ComputeLDoS(X_physical, omega, defect_energies, defect_locations
     
     % Compute LDoS for each energy value
     for e = 1:length(omega)
+        tic; % Start timing for this energy slice
+        
         % Compute Green's functions between grid points and defects
         G0_xd = computeBLGF(X_physical, defect_locations_physical, omega(e), a, t, E0, n, epsilon);
         G0_dx = computeBLGF(defect_locations_physical, X_physical, omega(e), a, t, E0, n, epsilon);
@@ -40,5 +42,9 @@ function LDoS = ComputeLDoS(X_physical, omega, defect_energies, defect_locations
         
         % Calculate LDOS change
         LDoS(:,:,e) = (-1/pi) * imag(pre);
+        
+        % Print the time taken for this energy slice
+        elapsed_time = toc;
+        fprintf('Energy slice %d/%d (ω = %.4f): Computed in %.2f seconds\n', e, length(omega), omega(e), elapsed_time);
     end
 end
