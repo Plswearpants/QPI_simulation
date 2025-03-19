@@ -39,5 +39,6 @@ function [LDoS, defect_locations_lattice] = computeLDoSCore(omega, defect_energi
     % Part 2: Compute LDoS using the core computation function
     %LDoS = ComputeDefectLDoS(X, omega, defect_energies, defect_locations, ...
     %                       a, t, E0, n, epsilon);
-    LDoS = ComputeLDoS(X_physical, omega, defect_energies, defect_locations_physical, a, t, E0, n, epsilon);
+    %LDoS = ComputeLDoS(X_physical, omega, defect_energies, defect_locations_physical, a, t, E0, n, epsilon);
+    LDoS = ComputeLDoS_vec(X_physical, omega, defect_energies, defect_locations_physical, a, t, E0, n, epsilon);
 end 

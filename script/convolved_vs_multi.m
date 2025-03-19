@@ -4,22 +4,23 @@
 
 %% Parameters and Data Loading
 % Grid and lattice parameters
-grid_size = 256;
-N_lattice = 50;
 
 % Load your data here
 % TODO: Replace these with your actual data loading commands
-load('LDoS_(w-E0)=linspace(-0.5,0.5,41)_epsilon=1e-3_n=500_N=19_grid256.mat', 'LDoS_result');  % Load single defect LDoS
+load('LDoS_single_defect.mat', 'LDoS_result','N');  % Load single defect LDoS
 single_defect_LDoS = LDoS_result(:,:,1);
+N_single = N;
 single_grid_size = size(single_defect_LDoS,1);
-load('LDoS_result_multi_defect_withlocations_n=500.mat', 'LDoS_result', 'defect_locations', 'N');   % Load actual multi-defect LDoS
+
+load('LDoS_multi_defect', 'LDoS_result', 'used_locations', 'N');   % Load actual multi-defect LDoS
+defect_locations = used_locations;
+N_multi = N;
 multi_defect_LDoS = LDoS_result(:,:,1);
-N_lattice = N;
-multi_grid_size = size(multi_defect_LDoS,1);
+grid_size = size(multi_defect_LDoS,1);
 
 
 %% Compute Convolved LDoS
-convolved_LDoS = compareDefectLDoS(single_defect_LDoS, defect_locations, N_lattice, grid_size);
+convolved_LDoS = compareDefectLDoS(single_defect_LDoS, defect_locations, N_multi, N_single, grid_size);
 
 %% Visualization
 figure('Position', [100 100 1000 800]);
@@ -32,13 +33,14 @@ colorbar;
 axis equal tight;
 xlabel('Grid X');
 ylabel('Grid Y');
+colormap(gca, gray); % Set to grayscale
 
 % Defect Locations Plot
 subplot(2,2,2);
 % Create empty grid
 grid_img = zeros(grid_size, grid_size);
 % Convert lattice coordinates to grid coordinates
-scale_factor = (grid_size - 1) / (N_lattice - 1);
+scale_factor = (grid_size - 1) / (N_multi - 1);
 grid_locations = round((defect_locations - 1) * scale_factor + 1);
 % Mark defect locations
 for i = 1:size(grid_locations, 1)
@@ -59,7 +61,7 @@ ylabel('Grid Y');
 
 % Add lattice grid lines with lighter color
 hold on;
-for i = 1:N_lattice
+for i = 1:N_multi
     x_grid = (i-1) * scale_factor + 1;
     y_grid = (i-1) * scale_factor + 1;
     % Use a very light gray color for grid lines
@@ -76,6 +78,7 @@ colorbar;
 axis equal tight;
 xlabel('Grid X');
 ylabel('Grid Y');
+colormap(gca, gray); % Set to grayscale
 
 % Actual multi-defect LDoS
 subplot(2,2,4);
@@ -85,12 +88,13 @@ colorbar;
 axis equal tight;
 xlabel('Grid X');
 ylabel('Grid Y');
+colormap(gca, gray); % Set to grayscale
 
 % Add overall title
 sgtitle('Multi-defect LDoS Comparison', 'FontSize', 14);
 
 % Save results
-save('comparison_results.mat', 'convolved_LDoS');
+%save('convolved_results.mat', 'convolved_LDoS');
 
 % Print some statistics
 correlation = corrcoef(multi_defect_LDoS(:), convolved_LDoS(:));

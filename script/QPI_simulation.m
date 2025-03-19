@@ -15,15 +15,15 @@ n = 300; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
 gridSize = 301; % number of spatial sampling points along one dimension
 omega_values = linspace(-0.5, 0.5, 41); % energy levels
-
+%omega_values = -0.45;
 %% 3. Define Defect configuration
 simulation_type = 'single'; % Options: 'single' or 'multi'
 if strcmp(simulation_type, 'single')
     num_defects = 1;
-    defect_energies = 1; % single defect energy
+    defect_energies = -1; % single defect energy
     defect_location = [(N+1)/2, (N+1)/2]; % center position for single defect
 else
-    num_defects = 3;
+    num_defects = 5;
     defect_energies = -0.02 * ones(num_defects, 1); % multiple defects with same energy
     defect_location = assignDefectLocations(num_defects, N); % randomly assign defect locations
 end
@@ -35,11 +35,11 @@ disp(['Computing ' simulation_type ' defect LDoS...']);
 % Compute LDoS using computeLDoSCore 
 [LDoS_result, used_locations] = computeLDoSCore(omega_values, defect_energies, defect_location, ...
     N, a, t, E0, n, epsilon, gridSize);
-elapsed_time = toc;c
+elapsed_time = toc;
 disp(['Computation completed in ' num2str(elapsed_time) ' seconds']);
 
 % Save the result
-save_filename = ['LDoS_' simulation_type '_defect.mat'];
+save_filename = ['LDoS_' simulation_type '_defect_save.mat'];
 save(save_filename, 'LDoS_result', 'used_locations', 'omega_values', 'epsilon', 'n', 'N');
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,7 +130,7 @@ grid on;
 selected_energy= [1:20,22:41];
 LDoS_result=LDoS_result(:,:,selected_energy);
 %% Generate QPI from target_LDoS
-target_LDoS= LDoS_sim;
+target_LDoS= LDoS_result;
 
 QPI_sim= zeros(size(target_LDoS));
 for k=1:size(target_LDoS,3)

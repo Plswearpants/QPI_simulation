@@ -1,4 +1,4 @@
-function [convolved_LDoS] = compareDefectLDoS(single_defect_LDoS, defect_locations, N_lattice, grid_size)
+function [convolved_LDoS] = compareDefectLDoS(single_defect_LDoS, defect_locations, N_multi, N_single, grid_size)
 % Computes convolved LDoS from single defect pattern and multiple defect locations
 %
 % Inputs:
@@ -11,11 +11,10 @@ function [convolved_LDoS] = compareDefectLDoS(single_defect_LDoS, defect_locatio
 %   convolved_LDoS    - Resulting convolved LDoS on the grid_size x grid_size grid
 
     % Parameters for single defect pattern
-    N_single = 19;  % Size of single defect lattice (19x19)
     single_grid_size = size(single_defect_LDoS, 1);  % Get grid size from input array
     
     % Calculate scaling factors
-    scale_factor_large = (grid_size - 1) / (N_lattice - 1);  % For larger lattice
+    scale_factor_large = (grid_size - 1) / (N_multi - 1);  % For larger lattice
     scale_factor_single = (single_grid_size - 1) / (N_single - 1);  % For single defect
     
     % Calculate the physical size ratio between lattices
@@ -62,7 +61,7 @@ function [convolved_LDoS] = compareDefectLDoS(single_defect_LDoS, defect_locatio
     end
     
     % Normalize the result
-    convolved_LDoS = convolved_LDoS / sum(convolved_LDoS(:));
+    %convolved_LDoS = convolved_LDoS / sum(convolved_LDoS(:));
 end
 
 function [x_start, x_end, y_start, y_end, pattern_x_start, pattern_x_end, ...
