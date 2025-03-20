@@ -1,9 +1,7 @@
 %% Descrption
-% This script simulates multi-defect defect QPI signals on a given crystal structure. It is based on the
-% TB-model and only consider nearest neighbor hopping term. For more
-% details, please consult the supplementary file of the pape:
-% (doi:https://doi.org/10.1038/s41467-020-14633-1)
-%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Computing_LDoS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% This script simulates multi-defect QPI signals on a given crystal structure.
+% Calculation focused on LDoS only for multiple defect configurations.
+
 %% 1. Define Parameters
 a = 1*10^-9; % lattice constant
 t = -0.2; % hopping parameter
@@ -14,33 +12,44 @@ N = 51; % number of lattice points along one dimension
 n = 300; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
 gridSize = 301; % number of spatial sampling points along one dimension
-omega_values = linspace(-0.5, 0.5, 41); % energy levels
-%omega_values = -0.45;
-%% 3. Define Defect configuration
-simulation_type = 'single'; % Options: 'single' or 'multi'
-if strcmp(simulation_type, 'single')
-    num_defects = 1;
-    defect_energies = -1; % single defect energy
-    defect_location = [(N+1)/2, (N+1)/2]; % center position for single defect
-else
-    num_defects = 5;
+omega_values = [-0.45, 0.05, 0.45]; % three specific energy slices
+
+%% 3. Define Defect configuration and run calculations
+defect_counts = [10, 20, 50, 100]; % List of defect counts to simulate
+
+% Loop through each defect count
+for def_idx = 1:length(defect_counts)
+    num_defects = defect_counts(def_idx);
+    disp(['Setting up simulation for ' num2str(num_defects) ' defects...']);
+    
+    % Set defect parameters
     defect_energies = -0.02 * ones(num_defects, 1); % multiple defects with same energy
     defect_location = assignDefectLocations(num_defects, N); % randomly assign defect locations
+    
+    % Compute LDoS
+    tic;
+    disp(['Computing LDoS for ' num2str(num_defects) ' defects...']);
+
+    % Compute LDoS using computeLDoSCore 
+    [LDoS_result, used_locations] = computeLDoSCore(omega_values, defect_energies, defect_location, ...
+        N, a, t, E0, n, epsilon, gridSize);
+    elapsed_time = toc;
+    disp(['Computation completed in ' num2str(elapsed_time) ' seconds']);
+
+    % Save the result with a unique filename including the defect count
+    save_filename = ['LDoS_multi_' num2str(num_defects) '_defects.mat'];
+    if exist(save_filename, 'file')
+        % File exists, add timestamp to make filename unique
+        timestamp = datestr(now, 'yyyymmdd_HHMMSS');
+        save_filename = ['LDoS_multi_' num2str(num_defects) '_defects_' timestamp '.mat'];
+        disp(['File already exists. Saving as: ' save_filename]);
+    end
+    
+    % Save only the essential data
+    save(save_filename, 'LDoS_result', 'used_locations', 'omega_values', 'epsilon', 'n', 'N', 'num_defects');
 end
 
-%% 3. Compute LDoS
-tic;
-disp(['Computing ' simulation_type ' defect LDoS...']);
-
-% Compute LDoS using computeLDoSCore 
-[LDoS_result, used_locations] = computeLDoSCore(omega_values, defect_energies, defect_location, ...
-    N, a, t, E0, n, epsilon, gridSize);
-elapsed_time = toc;
-disp(['Computation completed in ' num2str(elapsed_time) ' seconds']);
-
-% Save the result
-save_filename = ['LDoS_' simulation_type '_defect_save.mat'];
-save(save_filename, 'LDoS_result', 'used_locations', 'omega_values', 'epsilon', 'n', 'N');
+disp('All LDoS calculations completed.');
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 load('LDoS_result.mat', 'LDoS_result', 'omega_values', 'epsilon', 'n');
@@ -76,22 +85,30 @@ omega_vals = linspace(min(E(:)), max(E(:)), 41);
 
 % Initialize arrays to store CEC and convolution results
 CEC = zeros(size(kx,1), size(kx,2), length(omega_vals));
-CEC_conv = zeros(size(kx,1), size(kx,2), length(omega_vals));
+CEC_conv = zeros(2*size(kx,1), 2*size(kx,2), length(omega_vals));
+
+% Create expanded k-space grid for convolution (double the range)
+k_vals_expanded = linspace(-2*pi/a, 2*pi/a, 2*size(kx,1));
+[kx_expanded, ky_expanded] = meshgrid(k_vals_expanded, k_vals_expanded);
 
 % Compute CEC and convolution for each energy
 for i = 1:length(omega_vals)
     % Create constant energy contour with small tolerance
     CEC(:,:,i) = double(abs(E - omega_vals(i)) < 0.05);
     
-    % Compute convolution using conv2
-    temp_conv = conv2(CEC(:,:,i), CEC(:,:,i), 'same');
-    CEC_conv(:,:,i) = temp_conv / max(temp_conv(:)); % Normalize
+    % Compute convolution properly with FFT method to preserve correct k-space scaling
+    fft_CEC = fft2(CEC(:,:,i), 2*size(CEC,1), 2*size(CEC,2)); % Zero-pad for expanded k-space
+    conv_result = abs(ifft2(fft_CEC .* fft_CEC)); % Convolution in real space is multiplication in Fourier space
+    CEC_conv(:,:,i) = conv_result / max(conv_result(:)); % Normalize only, no shift needed
 end
 
 figure;
 d3gridDisplay(CEC,'dynamic');
+title('Constant Energy Contours (CEC)');
+
 figure;
 d3gridDisplay(CEC_conv,'dynamic');
+title('Convolved CEC (Joint Density of States)');
 
 %% Plot DOS at different energy(surface area of the Fermi contour)
 
