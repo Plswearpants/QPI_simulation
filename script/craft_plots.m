@@ -25,11 +25,60 @@ data = process_ldos_data(LDoS_result, omega_values, config);
 gridSize = size(data.slice, 1);
 
 %% Plot LDoS slice with lattice overlay
-plot_slice_with_lattice(data.slice, N, gridSize, config.axisMode, data.energy);
+%plot_slice_with_lattice(data.slice, N, gridSize, config.axisMode, data.energy);
+% Without lattice overlay:
+plot_slice_with_lattice(data.slice, N, gridSize, config.axisMode, data.energy, 'ShowLattice', false);
+%% add a block to add noise to the data 
+% define noise levels by signal to noise ratio where the signal is the variance of the data
+signal = var(data.slice(:));
+SNR = [1.2, 2, 5, 10];
+for i = 1:length(SNR)
+    noise_level = signal / SNR(i);
+    % Add Gaussian noise directly to the data
+    noise = sqrt(noise_level) * randn(size(data.slice));
+    data.slice_noisy = data.slice + noise;
+    plot_slice_with_lattice(data.slice_noisy, N, gridSize, config.axisMode, data.energy);
+    % Plot LDoS profiles for noisy data
+    figure('Name', sprintf('Noisy Profiles (SNR = %.1f)', SNR(i)));
+    [horiz_data_noisy, diag_data_noisy] = extract_profiles(data.slice_noisy, ...
+        'bin_size', config.bin_size, ...
+        'bin_sep', config.bin_sep, ...
+        'width_pct', config.width_pct, ...
+        'units', 'lattice', ...
+        'grid_size', gridSize, ...
+        'lattice_size', N);
+    
+    % Plot horizontal profile
+    subplot(2, 1, 1);
+    plot(horiz_data_noisy.x_raw, horiz_data_noisy.raw, 'b-', 'LineWidth', 1, 'DisplayName', 'Raw');
+    hold on;
+    plot(horiz_data_noisy.x_smooth, horiz_data_noisy.smooth, 'r-', 'LineWidth', 2, 'DisplayName', 'Smoothed');
+    % Add noise level indicator line
+    noise_std = sqrt(noise_level);
+    plot(xlim, [noise_std noise_std], 'g--', 'LineWidth', 1.5, 'DisplayName', 'Noise Level');
+    plot(xlim, [-noise_std -noise_std], 'g--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
+    title(['Horizontal Profile (', num2str(config.width_pct), '% width) - SNR = ', num2str(SNR(i))]);
+    xlabel('Lattice position'); ylabel('\delta\rho');
+    grid on; legend('Location', 'best');
+    
+    % Plot diagonal profile
+    subplot(2, 1, 2);
+    plot(diag_data_noisy.x_raw, diag_data_noisy.raw, 'b-', 'LineWidth', 1, 'DisplayName', 'Raw');
+    hold on;
+    plot(diag_data_noisy.x_smooth, diag_data_noisy.smooth, 'r-', 'LineWidth', 2, 'DisplayName', 'Smoothed');
+    % Add noise level indicator line
+    plot(xlim, [noise_std noise_std], 'g--', 'LineWidth', 1.5, 'DisplayName', 'Noise Level');
+    plot(xlim, [-noise_std -noise_std], 'g--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
+    title(['45° Diagonal Profile (', num2str(config.width_pct), '% length) - SNR = ', num2str(SNR(i))]);
+    xlabel('Lattice position'); ylabel('\delta\rho');
+    grid on; legend('Location', 'best');
+    
+    sgtitle(['Noisy Profiles for \delta\rho @ ', num2str(data.energy), ' eV (SNR = ', num2str(SNR(i)), ')']);
+end
 
 %% Plot LDoS profiles
 figure;
-[horiz_data, diag_data] = extract_profiles(data.slice, ...
+[horiz_data, diag_data] = extract_profiles(QPI_sim_cropped(:,:,39), ...
     'bin_size', config.bin_size, ...
     'bin_sep', config.bin_sep, ...
     'width_pct', config.width_pct, ...
@@ -324,12 +373,12 @@ function data = process_ldos_data(LDoS_result, omega_values, config)
             if ~isnumeric(defectLocations) || size(defectLocations, 2) ~= 2
                 warning('Invalid input format. Switching to interactive mode.');
                 defectLocations = [];
-                LDoS_processed = defectMask(LDoS_result, centerEnergy, omega_values);
+                LDoS_processed = defectMask(LDoS_result, 0.4, omega_values);
             else
-                LDoS_processed = defectMask(LDoS_result, centerEnergy, omega_values, 'locations', defectLocations);
+                LDoS_processed = defectMask(LDoS_result, 0.4, omega_values, 'locations', defectLocations);
             end
         else
-            LDoS_processed = defectMask(LDoS_result, centerEnergy, omega_values);
+            LDoS_processed = defectMask(LDoS_result, 0.4, omega_values);
         end
         
         data.processed = LDoS_processed;  % Store processed data
@@ -464,8 +513,28 @@ function QPI = generate_qpi(LDoS_data)
     end
 end
 
-function plot_slice_with_lattice(data, N, gridSize, axisMode, energy)
-    % Plot LDoS slice with lattice overlay
+function plot_slice_with_lattice(data, N, gridSize, axisMode, energy, varargin)
+    % Plot LDoS slice with optional lattice overlay
+    % Inputs:
+    %   data - 2D array of LDoS data
+    %   N - number of lattice sites
+    %   gridSize - size of the grid in pixels
+    %   axisMode - 'Grid Pixels' or 'Physical Units'
+    %   energy - energy value for the slice
+    %   varargin - Optional name-value pairs:
+    %       'ShowLattice' - logical flag to show lattice overlay (default: true)
+    
+    % Parse input parameters
+    p = inputParser;
+    addRequired(p, 'data', @isnumeric);
+    addRequired(p, 'N', @isnumeric);
+    addRequired(p, 'gridSize', @isnumeric);
+    addRequired(p, 'axisMode', @ischar);
+    addRequired(p, 'energy', @isnumeric);
+    addParameter(p, 'ShowLattice', true, @islogical);
+    parse(p, data, N, gridSize, axisMode, energy, varargin{:});
+    
+    % Create figure
     figure;
     
     % Load invgray colormap from base workspace
@@ -478,6 +547,7 @@ function plot_slice_with_lattice(data, N, gridSize, axisMode, energy)
         end
     end
     
+    % Plot the LDoS data
     if strcmp(axisMode, 'Grid Pixels')
         imagesc(data);
         xlabel('Pixel X');
@@ -494,6 +564,8 @@ function plot_slice_with_lattice(data, N, gridSize, axisMode, energy)
     axis square;
     colorbar;
     
+    % Add lattice overlay if requested
+    if p.Results.ShowLattice
     hold on;
     
     % Create lattice overlay
@@ -513,6 +585,7 @@ function plot_slice_with_lattice(data, N, gridSize, axisMode, energy)
     end
     
     hold off;
+    end
 end
 
 function plot_qpi_grid(QPI, slice_indices, slice_energies, qpiAxisMode, N, gridSize)
@@ -954,6 +1027,7 @@ function plot_fit_summary(results)
     set(leg, 'FontSize', 12, 'Box', 'off', 'LineWidth', 1.5);
     
     % Optional: Set axis limits with some padding
-    xlim([min(energies)*1.1, max(energies)*1.1]);
-    ylim([0, max(widths_h + width_errs_h)*1.1]);
+    %xlim([min(energies)*1.1, max(energies)*1.1]);
+    %ylim([0, max(widths_h + width_errs_h)*1.1]);
 end
+
