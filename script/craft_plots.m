@@ -23,7 +23,6 @@ config = get_user_preferences();
 %% Process data
 data = process_ldos_data(LDoS_result, omega_values, config);
 gridSize = size(data.slice, 1);
-
 %% Plot LDoS slice with lattice overlay
 %plot_slice_with_lattice(data.slice, N, gridSize, config.axisMode, data.energy);
 % Without lattice overlay:
@@ -78,31 +77,32 @@ end
 
 %% Plot LDoS profiles
 figure;
-[horiz_data, diag_data] = extract_profiles(QPI_sim_cropped(:,:,39), ...
+[horiz_data, diag_data] = extract_profiles(data.slice, ...
     'bin_size', config.bin_size, ...
     'bin_sep', config.bin_sep, ...
     'width_pct', config.width_pct, ...
     'units', 'lattice', ...
     'grid_size', gridSize, ...
-    'lattice_size', N);
+    'lattice_size', N, ...
+    'mode', 'from_center');
 
 % Plot horizontal profile
 subplot(2, 1, 1);
-plot(horiz_data.x_raw, horiz_data.raw, 'b-', 'LineWidth', 1, 'DisplayName', 'Raw');
+plot(horiz_data.x_raw, horiz_data.raw, "c", 'LineWidth', 1, 'DisplayName', 'Raw');
 hold on;
-plot(horiz_data.x_smooth, horiz_data.smooth, 'r-', 'LineWidth', 2, 'DisplayName', 'Smoothed');
+plot(horiz_data.x_smooth, horiz_data.smooth, "c", 'LineWidth', 2, 'DisplayName', 'Smoothed');
 title(['Horizontal Profile (', num2str(config.width_pct), '% width)']);
 xlabel('Lattice position'); ylabel('\delta\rho');
-grid on; legend('Location', 'best');
+grid on; %legend('Location', 'best');
 
 % Plot diagonal profile
 subplot(2, 1, 2);
-plot(diag_data.x_raw, diag_data.raw, 'b-', 'LineWidth', 1, 'DisplayName', 'Raw');
+plot(diag_data.x_raw, diag_data.raw, "m", 'LineWidth', 1, 'DisplayName', 'Raw');
 hold on;
-plot(diag_data.x_smooth, diag_data.smooth, 'r-', 'LineWidth', 2, 'DisplayName', 'Smoothed');
+plot(diag_data.x_smooth, diag_data.smooth, "m", 'LineWidth', 2, 'DisplayName', 'Smoothed');
 title(['45° Diagonal Profile (', num2str(config.width_pct), '% length)']);
 xlabel('Lattice position'); ylabel('\delta\rho');
-grid on; legend('Location', 'best');
+grid on; %legend('Location', 'best');
 
 sgtitle(['Profiles for \delta\rho @ ', num2str(data.energy), ' eV']);
 
@@ -144,7 +144,7 @@ end
 plot_qpi_grid(QPI_for_plotting, slice_indices, data.omega_values, config.qpiAxisMode, N, gridSize);
 
 %% Plot QPI profiles and fit Lorentzians
-slice_energies=0.075;
+slice_energies=0.1;
 % Instead of the existing profile fitting code, use:
 batch_fit_qpi_profiles(QPI_for_plotting, data.omega_values, config, ...
     'energies', slice_energies);  % or use 'slices', slice_indices

@@ -20,6 +20,7 @@ function [profile_raw, profile_smooth, x_raw, x_smooth] = theta_profile(image_da
 %       'units'       - 'pixels' or 'lattice' (default: 'pixels')
 %       'grid_size'   - Grid size for lattice units (required if units='lattice')
 %       'lattice_size'- Lattice size for conversion (required if units='lattice')
+%       'mode'        - 'symmetric' or 'from_center' (default: 'symmetric')
 %
 % Outputs:
 %   profile_raw    - Raw intensity profile along the specified angle
@@ -38,6 +39,7 @@ addParameter(p, 'bin_sep', 1, @(x) isnumeric(x) && x > 0);
 addParameter(p, 'units', 'pixels', @(x) ischar(x) && any(strcmp(x, {'pixels', 'lattice'})));
 addParameter(p, 'grid_size', [], @(x) isempty(x) || (isnumeric(x) && x > 0));
 addParameter(p, 'lattice_size', [], @(x) isempty(x) || (isnumeric(x) && x > 0));
+addParameter(p, 'mode', 'symmetric', @(x) ischar(x) && any(strcmp(x, {'symmetric', 'from_center'})));
 parse(p, image_data, theta_degrees, varargin{:});
 
 center = p.Results.center;
@@ -47,6 +49,7 @@ bin_sep = p.Results.bin_sep;
 units = p.Results.units;
 grid_size = p.Results.grid_size;
 lattice_size = p.Results.lattice_size;
+mode = p.Results.mode;
 
 % Check if lattice conversion is requested but parameters are missing
 if strcmp(units, 'lattice') && (isempty(grid_size) || isempty(lattice_size))
@@ -153,16 +156,29 @@ catch e
     profile_smooth = smoothdata(profile_raw, 'gaussian', min(5, floor(length(profile_raw)/4)));
 end
 
-% Calculate position values
+% Calculate position values based on mode
 if strcmp(units, 'pixels')
-    % Use pixels centered at 0
-    x_raw = linspace(-length(profile_raw)/2, length(profile_raw)/2, length(profile_raw));
-    x_smooth = linspace(-length(profile_smooth)/2, length(profile_smooth)/2, length(profile_smooth));
+    if strcmp(mode, 'symmetric')
+        % Symmetric mode: range from -x to x
+        x_raw = linspace(-length(profile_raw)/2, length(profile_raw)/2, length(profile_raw));
+        x_smooth = linspace(-length(profile_smooth)/2, length(profile_smooth)/2, length(profile_smooth));
+    else
+        % From-center mode: range from 0 to x
+        x_raw = linspace(0, length(profile_raw), length(profile_raw));
+        x_smooth = linspace(0, length(profile_smooth), length(profile_smooth));
+    end
 else
     % Convert to lattice units
     grid_to_lattice_ratio = grid_size / lattice_size;
-    x_raw = ((1:length(profile_raw)) - ceil(length(profile_raw)/2)) / grid_to_lattice_ratio;
-    x_smooth = ((1:length(profile_smooth)) - ceil(length(profile_smooth)/2)) / grid_to_lattice_ratio;
+    if strcmp(mode, 'symmetric')
+        % Symmetric mode
+        x_raw = ((1:length(profile_raw)) - ceil(length(profile_raw)/2)) / grid_to_lattice_ratio;
+        x_smooth = ((1:length(profile_smooth)) - ceil(length(profile_smooth)/2)) / grid_to_lattice_ratio;
+    else
+        % From-center mode
+        x_raw = (0:(length(profile_raw)-1)) / grid_to_lattice_ratio;
+        x_smooth = (0:(length(profile_smooth)-1)) / grid_to_lattice_ratio;
+    end
     
     % If this is a diagonal, apply the appropriate scaling factor
     if mod(theta_degrees, 90) ~= 0
@@ -170,6 +186,25 @@ else
         diagonal_factor = sqrt(1 + tan(theta_rad)^2);
         x_raw = x_raw * diagonal_factor;
         x_smooth = x_smooth * diagonal_factor;
+    end
+end
+
+% For from_center mode, we need to extract only the positive direction
+if strcmp(mode, 'from_center')
+    % Calculate the center point index
+    center_idx = ceil(length(profile_raw)/2);
+    
+    % Extract only the positive direction
+    profile_raw = profile_raw(center_idx:end);
+    profile_smooth = profile_smooth(center_idx:end);
+    
+    % Adjust x values if needed
+    if strcmp(units, 'pixels')
+        x_raw = linspace(0, length(profile_raw), length(profile_raw));
+        x_smooth = linspace(0, length(profile_smooth), length(profile_smooth));
+    else
+        x_raw = x_raw(1:length(profile_raw));
+        x_smooth = x_smooth(1:length(profile_smooth));
     end
 end
 

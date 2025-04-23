@@ -36,3 +36,4 @@ Thumbs.db
 # ...except this one
 !LDoS_single_defect_save.mat
 !LDoS_multi_defect_save.mat
+!LDoS_single_defects_self=0.6_save.mat

@@ -12,10 +12,10 @@ N = 51; % number of lattice points along one dimension
 n = 300; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
 gridSize = 301; % number of spatial sampling points along one dimension
-omega_values = [-0.45, 0.05, 0.45]; % three specific energy slices
+omega_values = linspace(-0.5,0.5,41); % three specific energy slices
 
 %% 3. Define Defect configuration and run calculations
-defect_counts = [10, 20, 50, 100]; % List of defect counts to simulate
+defect_counts = 1; % List of defect counts to simulate
 
 % Loop through each defect count
 for def_idx = 1:length(defect_counts)
@@ -24,8 +24,11 @@ for def_idx = 1:length(defect_counts)
     
     % Set defect parameters
     defect_energies = -0.02 * ones(num_defects, 1); % multiple defects with same energy
-    defect_location = assignDefectLocations(num_defects, N); % randomly assign defect locations
-    
+    if num_defects ~= 1
+        defect_location = assignDefectLocations(num_defects, N); % randomly assign defect locations
+    else
+        defect_location = [ceil(N/2), ceil(N/2)];
+    end
     % Compute LDoS
     tic;
     disp(['Computing LDoS for ' num2str(num_defects) ' defects...']);
