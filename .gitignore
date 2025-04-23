@@ -32,6 +32,9 @@ Thumbs.db
 *.raw
 *.csv 
 *.pptx
+*.png
+*.avi
+*.mp4
 
 # ...except this one
 !LDoS_single_defect_save.mat
