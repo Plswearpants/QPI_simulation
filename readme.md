@@ -1,6 +1,6 @@
 # Quantum Phase Interference (QPI) Simulation Toolkit
 
-A comprehensive MATLAB toolkit for simulating and analyzing Quantum Phase Interference patterns in materials, with particular focus on single and multiple defect systems.
+A comprehensive MATLAB toolkit for simulating and analyzing Quantum Phase Interference patterns in materials, with particular focus on single and multiple defect systems. Used in Chapter 4.2 in this UBC thesis: [Defect-resolved scattering in quantum materials : a scanning tunneling microscope study with algorithmic multi-channel deconvolution](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0451233)
 
 ## Features
 
