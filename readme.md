@@ -1,6 +1,16 @@
 # Quantum Phase Interference (QPI) Simulation Toolkit
 
-A comprehensive MATLAB toolkit for simulating and analyzing Quantum Phase Interference patterns in materials, with particular focus on single and multiple defect systems. Used in Chapter 4.2 in this UBC thesis: [Defect-resolved scattering in quantum materials : a scanning tunneling microscope study with algorithmic multi-channel deconvolution](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0451233)
+A comprehensive MATLAB toolkit for simulating and analyzing Quantum Phase Interference patterns using T-matrix formulism in squarenet materials, with particular focus on single and multiple defect systems. Used in Chapter 4.2 in this UBC thesis: [Defect-resolved scattering in quantum materials : a scanning tunneling microscope study with algorithmic multi-channel deconvolution](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0451233)
+
+## Example result illustrations:
+**Single defect simulation**
+<img width="955" height="896" alt="Ch5_singe_defect" src="https://github.com/user-attachments/assets/25edf864-7e3e-4346-a575-6ae0393827b1" />
+
+**Multi-defect simulation**
+<img width="955" height="896" alt="Ch5_multi_defect" src="https://github.com/user-attachments/assets/08a97aaa-6908-4240-9027-f0b03ed55db9" />
+
+**QPI lifetime analysis**
+<img width="986" height="450" alt="Ch5_qp_lifetime" src="https://github.com/user-attachments/assets/0dc8edfd-ac30-47cc-8789-019bc0d1f605" />
 
 ## Features
 
@@ -17,6 +27,7 @@ A comprehensive MATLAB toolkit for simulating and analyzing Quantum Phase Interf
 
 - **Visualization Tools**
   - 2D and 3D grid displays of LDoS patterns
+
   - Energy dispersion visualization
   - QPI pattern analysis
   - Customizable colormap support
