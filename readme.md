@@ -90,17 +90,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-[Add your chosen license here]
+This work is licensed under a [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/) (CC BY-NC 4.0).
 
 ## Citation
 
-If you use this code in your research, please cite:
-[Add relevant paper citations here]
+If you use this code in your research, please cite it using the following BibTex:
+@phdthesis{Chen_2025, series={Electronic Theses and Dissertations (ETDs) 2008+}, title={Defect-resolved scattering in quantum materials : a scanning tunneling microscope study with algorithmic multi-channel deconvolution}, url={https://open.library.ubc.ca/collections/ubctheses/24/items/1.0451233}, DOI={http://dx.doi.org/10.14288/1.0451233}, school={University of British Columbia}, author={Chen, Dong}, year={2025}, collection={Electronic Theses and Dissertations (ETDs) 2008+}}
 
 ## Authors
 
 - Dong Chen
-
-## Contact
-
-[Add your contact information here]
