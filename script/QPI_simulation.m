@@ -9,11 +9,11 @@ E0 = 0; % on-site energy
 N = 51; % number of lattice points along one dimension
 
 %% 2. Set up simulating ranges
-n = 300; % number of grid points for numerical integration
+n = 301; % number of grid points for numerical integration
 epsilon = 1e-3; % small imaginary part for numerical stability
 gridSize = 301; % number of spatial sampling points along one dimension
-omega_values = linspace(-0.5,0.5,41); % three specific energy slices
-
+energy_selections = linspace(-0.5,0.5,41); % three specific energy slices
+omega_values = energy_selections([3,13,31,39]);
 %% 3. Define Defect configuration and run calculations
 defect_counts = 1; % List of defect counts to simulate
 

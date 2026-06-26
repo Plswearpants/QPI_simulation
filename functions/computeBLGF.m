@@ -63,7 +63,7 @@ end
     G0_flat = zeros(numel(sx), 1);
     
     % Compute Green's function
-    b = (omega + 1i*epsilon + 1i*(10*0.0627)*omega^2/2 - E0) / (2 * t);
+    b = (omega + 1i*epsilon + 1i*(30*0.0627)*omega^2/2 - E0) / (2 * t);
     %b = (omega + 1i*epsilon - E0) / (2 * t);
     
     % Flatten arrays for parallel computing
